@@ -23,7 +23,7 @@ jobs:
             - name: draft release
               uses: softprops/action-gh-release@v1
               with:
-                  draft: true
+                  draft: false
                   files: |
                       obsidian-open-link-with-${{ github.ref_name }}.zip
                       manifest.json

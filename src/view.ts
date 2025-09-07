@@ -35,6 +35,44 @@ class InAppView extends ItemView {
     }
 }
 
+class WebViewerView extends ItemView {
+    public icon: BuiltinIcon = 'popup-open'
+    public title: string
+    constructor(leaf: WorkspaceLeaf, public url: string) {
+        super(leaf)
+        this.title = new URL(url).host
+        // TODO: remove this after tab title issue is fixed
+        this.leaf.setPinned(true)
+        setTimeout(() => {
+            this.leaf.setPinned(false)
+        }, 10)
+    }
+    async onOpen(): Promise<void> {
+        // Enhanced iframe fallback when core Web browser is unavailable
+        const frame_styles: string[] = [
+            'height: 100%',
+            'width: 100%',
+            'background-color: white',
+            'border: none',
+        ]
+        const frame = document.createElement('iframe')
+        frame.setAttr('style', frame_styles.join('; '))
+        frame.setAttr('src', this.url)
+        frame.setAttr(
+            'sandbox',
+            'allow-same-origin allow-scripts allow-popups allow-forms allow-popups-to-escape-sandbox allow-top-navigation'
+        )
+        frame.setAttr('allow', 'fullscreen; autoplay; encrypted-media')
+        this.containerEl.children[1].appendChild(frame)
+    }
+    getDisplayText(): string {
+        return this.title
+    }
+    getViewType(): string {
+        return 'OOLW::WebViewerView'
+    }
+}
+
 class ViewMgr {
     constructor(public plugin: OpenLinkPluginITF) {}
     private _getLeafId(leaf: any): string {
@@ -64,6 +102,7 @@ class ViewMgr {
         options: {
             focus?: boolean
             paneType?: PaneType
+            useWebViewer?: boolean
         } = {}
     ): Promise<string> {
         const getNewLeafId = (): string => {
@@ -87,19 +126,20 @@ class ViewMgr {
                 viewRec.find(({ mode }) => mode === ViewMode.NEW)
             id = rec?.leafId ?? getNewLeafId()
         }
-        return await this.updateView(id, url, mode, options?.focus)
+        return await this.updateView(id, url, mode, options?.focus, options?.useWebViewer)
     }
     async updateView(
         leafId: string,
         url: string,
         mode: ViewMode,
-        focus: boolean = true
+        focus: boolean = true,
+        useWebViewer: boolean = false
     ): Promise<string | null> {
         const leaf = this.plugin.app.workspace.getLeafById(leafId)
         if (leaf === null) {
             return null
         } else {
-            const view = new InAppView(leaf, url)
+            const view = useWebViewer ? new WebViewerView(leaf, url) : new InAppView(leaf, url)
             await leaf.open(view)
             const rec = this.plugin.settings.inAppViewRec.find(
                 (rec) => rec.leafId === leafId
@@ -123,6 +163,59 @@ class ViewMgr {
             return leafId
         }
     }
+    async createWebViewerView(
+        url: string,
+        mode: ViewMode,
+        options: {
+            focus?: boolean
+            paneType?: PaneType
+        } = {}
+    ): Promise<string> {
+        // Try Obsidian 1.9+ core Web browser directly
+        const appAny = this.plugin.app as any
+        const isCoreWbEnabled = !!(
+            appAny?.internalPlugins?.plugins?.['webviewer']?.enabled ||
+            appAny?.plugins?.enabledPlugins?.has?.('webviewer')
+        )
+        const registry: Record<string, any> = appAny?.viewRegistry?.viewByType ?? {}
+        const typeCandidatesAll = [
+            // Most likely IDs for the core plugin
+            'webviewer',
+        ]
+        const typeCandidates = typeCandidatesAll.filter((t) => !!registry[t])
+        for (const t of typeCandidates) {
+            try {
+                const target =
+                    typeof options.paneType === 'undefined'
+                        ? false
+                        : options.paneType
+                const leaf = this.plugin.app.workspace.getLeaf(
+                    target === false ? 'tab' : target
+                )
+                await leaf.setViewState({
+                    type: t as any,
+                    state: { url },
+                })
+                if (options?.focus !== false) {
+                    this.plugin.app.workspace.setActiveLeaf(leaf)
+                }
+                if (this.plugin.settings.enableLog) {
+                    log('info', 'Opened in core Web viewer', { url, type: t })
+                }
+                return this._getLeafId(leaf)
+            } catch (err) {
+                // try next candidate
+            }
+        }
+        if (this.plugin.settings.enableLog) {
+            log('info', 'Falling back to iframe WebViewerView', { url, coreEnabled: isCoreWbEnabled, knownTypes: Object.keys(registry) })
+        }
+        // Fallback to iframe-based in-app view
+        return await this.createView(url, mode, {
+            ...options,
+            useWebViewer: true,
+        })
+    }
     async restoreView() {
         const viewRec = this._validRecords()
         const restored: ViewRec[] = []
@@ -143,4 +236,4 @@ class ViewMgr {
     }
 }
 
-export { InAppView, ViewMgr, ViewMode, ViewRec }
+export { InAppView, WebViewerView, ViewMgr, ViewMode, ViewRec }

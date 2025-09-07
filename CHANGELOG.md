@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.11
+
+-   added: support for Obsidian 1.9+ web viewer as a new browser option [#36](https://github.com/gitgud5000/obsidian-open-link-with/issues/36)
+-   updated: minimum Obsidian version requirement to 1.9 for web viewer support
+-   improved: web viewer now uses Obsidian's native browser view when available, and falls back to an enhanced iframe implementation for compatibility
+-   improved: modifier key bindings and focus options now also apply to the web viewer
+
 ## 0.1.10
 
 -   fixed: no longer ignores non-clickable elements with a valid pending URL [#20](https://github.com/mamoruds/obsidian-open-link-with/issues/20)
