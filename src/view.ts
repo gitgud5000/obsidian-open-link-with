@@ -49,12 +49,23 @@ class WebViewerView extends ItemView {
     }
     async onOpen(): Promise<void> {
         // Try to use Obsidian's built-in web viewer if available (1.9+)
+        // BUT only if no modifier bindings are configured (to avoid bypassing event handlers)
+        //
+        // IMPORTANT: When Obsidian's built-in browser view is used, it creates a completely
+        // separate view that bypasses this plugin's event handling system. This means that
+        // modifier key bindings (Ctrl+click, Alt+click, etc.) won't work in the built-in
+        // browser view. To ensure modifier bindings work correctly, we use the iframe
+        // fallback when any modifier bindings are configured.
         try {
             // Check if the browser view type is available in Obsidian 1.9+
             const app = this.app as any
+            
+            // Check if modifier bindings are configured - if so, use iframe to maintain event handling
+            const hasModifierBindings = app.plugins?.plugins?.['open-link-with']?.settings?.modifierBindings?.length > 0
+            
             if (app.viewRegistry && app.viewRegistry.viewByType && 
-                app.viewRegistry.viewByType['browser']) {
-                // Use the built-in browser view if available
+                app.viewRegistry.viewByType['browser'] && !hasModifierBindings) {
+                // Use the built-in browser view if available and no modifier bindings are configured
                 const browserLeaf = this.app.workspace.getLeaf('tab')
                 await browserLeaf.setViewState({
                     type: 'browser',
@@ -71,7 +82,7 @@ class WebViewerView extends ItemView {
             try {
                 const app = this.app as any
                 if (app.plugins?.plugins?.['open-link-with']?.settings?.enableLog) {
-                    log('info', 'Built-in browser view not available, using enhanced iframe fallback', error)
+                    log('info', 'Built-in browser view not available or modifier bindings configured, using enhanced iframe fallback', error)
                 }
             } catch (logError) {
                 // Ignore logging errors
