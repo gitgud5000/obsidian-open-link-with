@@ -48,24 +48,15 @@ class WebViewerView extends ItemView {
         }, 10)
     }
     async onOpen(): Promise<void> {
-        // Try to use Obsidian's built-in web viewer if available (1.9+)
-        // BUT only if no modifier bindings are configured (to avoid bypassing event handlers)
-        //
-        // IMPORTANT: When Obsidian's built-in browser view is used, it creates a completely
-        // separate view that bypasses this plugin's event handling system. This means that
-        // modifier key bindings (Ctrl+click, Alt+click, etc.) won't work in the built-in
-        // browser view. To ensure modifier bindings work correctly, we use the iframe
-        // fallback when any modifier bindings are configured.
+        // Always use Obsidian's built-in web viewer core plugin (1.9+)
+        // No iframe fallback - user explicitly requested to use only the core plugin
         try {
             // Check if the browser view type is available in Obsidian 1.9+
             const app = this.app as any
             
-            // Check if modifier bindings are configured - if so, use iframe to maintain event handling
-            const hasModifierBindings = app.plugins?.plugins?.['open-link-with']?.settings?.modifierBindings?.length > 0
-            
             if (app.viewRegistry && app.viewRegistry.viewByType && 
-                app.viewRegistry.viewByType['browser'] && !hasModifierBindings) {
-                // Use the built-in browser view if available and no modifier bindings are configured
+                app.viewRegistry.viewByType['browser']) {
+                // Use the built-in browser view
                 const browserLeaf = this.app.workspace.getLeaf('tab')
                 await browserLeaf.setViewState({
                     type: 'browser',
@@ -76,33 +67,35 @@ class WebViewerView extends ItemView {
                 this.app.workspace.setActiveLeaf(browserLeaf)
                 this.leaf.detach()
                 return
+            } else {
+                // Core browser view not available - show error instead of fallback
+                throw new Error('Obsidian core browser view is not available. Please ensure you are using Obsidian 1.9+ and the core browser plugin is enabled.')
             }
         } catch (error) {
-            // Safely check for logging settings
+            // Log error and show it to the user instead of falling back to iframe
             try {
                 const app = this.app as any
                 if (app.plugins?.plugins?.['open-link-with']?.settings?.enableLog) {
-                    log('info', 'Built-in browser view not available or modifier bindings configured, using enhanced iframe fallback', error)
+                    log('error', 'Failed to open URL with core browser view', error)
                 }
             } catch (logError) {
                 // Ignore logging errors
             }
+            
+            // Display error message to user instead of iframe fallback
+            const errorContainer = document.createElement('div')
+            errorContainer.setAttr('style', 'padding: 20px; text-align: center; color: var(--text-error);')
+            errorContainer.innerHTML = `
+                <h3>Web Viewer Unavailable</h3>
+                <p>Unable to open link with Obsidian's core browser view:</p>
+                <p style="font-style: italic;">${error.message || 'Unknown error'}</p>
+                <p>Please ensure you are using Obsidian 1.9+ and the core browser plugin is enabled.</p>
+                <p style="margin-top: 20px;">
+                    <a href="${this.url}" style="color: var(--text-accent);">Open link externally: ${this.url}</a>
+                </p>
+            `
+            this.containerEl.children[1].appendChild(errorContainer)
         }
-        
-        // Enhanced iframe fallback with better browser-like features
-        const frame_styles: string[] = [
-            'height: 100%',
-            'width: 100%',
-            'background-color: white',
-            'border: none',
-        ]
-        const frame = document.createElement('iframe')
-        frame.setAttr('style', frame_styles.join('; '))
-        frame.setAttr('src', this.url)
-        // Enhanced security and features for web viewer
-        frame.setAttr('sandbox', 'allow-same-origin allow-scripts allow-popups allow-forms allow-popups-to-escape-sandbox allow-top-navigation')
-        frame.setAttr('allow', 'fullscreen; autoplay; encrypted-media')
-        this.containerEl.children[1].appendChild(frame)
     }
     getDisplayText(): string {
         return this.title
