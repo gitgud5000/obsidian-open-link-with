@@ -15,6 +15,7 @@ import {
     BROWSER_GLOBAL,
     BROWSER_IN_APP,
     BROWSER_IN_APP_LAST,
+    BROWSER_WEB_VIEWER,
     MODIFIER_TEXT,
     MODIFIER_TEXT_FALLBACK,
 } from './constant'
@@ -156,6 +157,15 @@ export default class OpenLinkPlugin
             if (profileName === BROWSER_IN_APP_LAST.val) {
                 evt.preventDefault()
                 this._viewmgr.createView(url, ViewMode.LAST, {
+                    focus: matchedMB?.focusOnView,
+                    paneType,
+                })
+                return
+            }
+            // web viewer (Obsidian 1.9+)
+            if (profileName === BROWSER_WEB_VIEWER.val) {
+                evt.preventDefault()
+                this._viewmgr.createWebViewerView(url, ViewMode.NEW, {
                     focus: matchedMB?.focusOnView,
                     paneType,
                 })
@@ -335,6 +345,7 @@ class SettingTab extends PluginSettingTab {
                     BROWSER_SYSTEM,
                     BROWSER_IN_APP_LAST,
                     BROWSER_IN_APP,
+                    BROWSER_WEB_VIEWER,
                     ...Object.keys(
                         this.plugin.profiles.getBrowsersCMD(
                             this.plugin.settings.custom
@@ -399,6 +410,7 @@ class SettingTab extends PluginSettingTab {
                     BROWSER_GLOBAL,
                     BROWSER_IN_APP_LAST,
                     BROWSER_IN_APP,
+                    BROWSER_WEB_VIEWER,
                     ...Object.keys(
                         this.plugin.profiles.getBrowsersCMD(
                             this.plugin.settings.custom
@@ -438,7 +450,8 @@ class SettingTab extends PluginSettingTab {
                 toggle.toggleEl.setAttribute('id', 'oolw-view-focus-toggle')
                 if (
                     mb.browser === BROWSER_IN_APP.val ||
-                    mb.browser === BROWSER_IN_APP_LAST.val
+                    mb.browser === BROWSER_IN_APP_LAST.val ||
+                    mb.browser === BROWSER_WEB_VIEWER.val
                 ) {
                     toggle.setDisabled(false)
                     toggle.setValue(mb.focusOnView)
@@ -448,7 +461,7 @@ class SettingTab extends PluginSettingTab {
                     toggle.setValue(false)
                 }
                 toggle.setTooltip(
-                    'Focus on view after opening/updating (in-app browser only)'
+                    'Focus on view after opening/updating (in-app browser and web viewer only)'
                 )
                 toggle.onChange(async (val) => {
                     this.plugin.settings.modifierBindings.find(
