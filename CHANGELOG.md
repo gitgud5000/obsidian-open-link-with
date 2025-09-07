@@ -2,10 +2,13 @@
 
 ## 0.1.11
 
--   added: support for Obsidian 1.9+ web viewer as a new browser option [#36](https://github.com/gitgud5000/obsidian-open-link-with/issues/36)
+-   added: support for Obsidian 1.9+ web viewer as a new browser option [#36](https://github.com/MamoruDS/obsidian-open-link-with/issues/36)
 -   updated: minimum Obsidian version requirement to 1.9 for web viewer support
 -   improved: web viewer now uses Obsidian's native browser view when available, and falls back to an enhanced iframe implementation for compatibility
 -   improved: modifier key bindings and focus options now also apply to the web viewer
+-   ⚠️ **Important**: *`Open external links`* **must be disabled for correct behavior**
+    <img width="934" height="73" alt="image" src="https://github.com/user-attachments/assets/cacc0c04-9c2e-4cbf-96b9-184777abca9a" />
+
 
 ## 0.1.10
 
