@@ -163,7 +163,17 @@ class LocalDocClickHandler {
         if (this.handleAuxClick && evt.button === 2) {
             fire = false
         }
+        if (!fire) {
+            return false
+        }
+        // We are going to handle this click ourselves; prevent default and stop propagation
         evt.preventDefault()
+        try {
+            evt.stopImmediatePropagation()
+            evt.stopPropagation()
+        } catch (e) {
+            // no-op: older environments may not support stopImmediatePropagation on synthetic events
+        }
         if (this.clickUilts._plugin.settings.enableLog) {
             log('info', 'click event (LocalDocClickHandler)', {
                 is_aux: this.handleAuxClick,
@@ -172,9 +182,6 @@ class LocalDocClickHandler {
                 modifiers,
                 btn: evt.button,
             })
-        }
-        if (!fire) {
-            return false
         }
         const dummy = evt.doc.createElement('a')
         const cid = genRandomStr(4)
