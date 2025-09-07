@@ -20,6 +20,18 @@ Select which browser you want to open external link with in plugin's setting men
 <img src="https://github.com/MamoruDS/obsidian-open-link-with/raw/main/assets/screenshot_00.png" style="width: 650px; max-width: 100%;">
 </p>
 
+### Web Viewer (Obsidian 1.9+)
+
+Starting with Obsidian 1.9, this plugin supports the new **web viewer** option which provides an enhanced browser experience within Obsidian. This feature leverages Obsidian's built-in web browsing capabilities for a more integrated and native browsing experience.
+
+The web viewer option:
+- Uses Obsidian's native browser view when available (Obsidian 1.9+)
+- Falls back gracefully to an enhanced iframe implementation for compatibility
+- Provides better security and modern web features
+- Supports all the same modifier key bindings as other browser options
+
+To use the web viewer, simply select "web viewer (Obsidian 1.9+)" from the Browser dropdown in the plugin settings.
+
 ### Customization
 
 Put your custom profile in plugin's settings menu. Profile should contain `name(string): commands(string[])` which is demonstrated in the following:

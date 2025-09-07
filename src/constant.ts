@@ -28,6 +28,11 @@ const BROWSER_IN_APP_LAST: ProfileDisplay = {
     display: 'in-app view',
 }
 
+const BROWSER_WEB_VIEWER: ProfileDisplay = {
+    val: '_web_viewer',
+    display: 'web viewer (Obsidian 1.9+)',
+}
+
 const _isExecutableExist = async (fp: string): Promise<boolean> => {
     return existsSync(fp)
 }
@@ -295,6 +300,7 @@ export {
     BROWSER_GLOBAL,
     BROWSER_IN_APP,
     BROWSER_IN_APP_LAST,
+    BROWSER_WEB_VIEWER,
     MODIFIER_TEXT,
     MODIFIER_TEXT_FALLBACK,
     PRESET_BROWSERS,
