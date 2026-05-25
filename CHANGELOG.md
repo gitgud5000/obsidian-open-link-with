@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.12
+
+-   fixed: system default browser mode now intercepts link clicks correctly to prevent links opening twice
+
 ## 0.1.11
 
 -   added: support for Obsidian 1.9+ web viewer as a new browser option [#36](https://github.com/MamoruDS/obsidian-open-link-with/issues/36)

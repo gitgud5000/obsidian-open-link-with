@@ -1,7 +1,7 @@
 {
     "id": "obsidian-open-link-with",
     "name": "Open Link With",
-    "version": "0.1.11",
+    "version": "0.1.12",
     "minAppVersion": "1.9.0",
     "description": "Open external link with specific browser / in-app view in Obsidian",
     "author": "gitgud5000",
