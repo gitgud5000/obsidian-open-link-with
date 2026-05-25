@@ -201,6 +201,11 @@ export default class OpenLinkPlugin
                     win._builtInOpen(url)
                 }
             } else {
+                evt.preventDefault()
+                try {
+                    evt.stopImmediatePropagation()
+                    evt.stopPropagation()
+                } catch {}
                 win._builtInOpen(url)
             }
         }
